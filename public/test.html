@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page - Working?</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2563eb; }
+        .success { color: #16a34a; font-size: 24px; }
+        .error { color: #dc2626; }
+        button {
+            background: #2563eb;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover { background: #1d4ed8; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>✅ Server is Working!</h1>
+        <p class="success">If you can see this page, your Vite server is running correctly!</p>
+        
+        <h2>📊 Quick Tests:</h2>
+        <p><strong>Frontend Server:</strong> <span class="success">✅ Running</span></p>
+        <p><strong>URL:</strong> http://localhost:5173/test.html</p>
+        
+        <h2>🔍 Next Step:</h2>
+        <p>The server works, so the blank page is a JavaScript issue.</p>
+        
+        <button onclick="window.location.href='/'">Go to Main App</button>
+        
+        <hr style="margin: 30px 0;">
+        
+        <h2>🛠️ Alternative Ways to Open DevTools:</h2>
+        <ol>
+            <li><strong>Right-click on page → Inspect</strong></li>
+            <li><strong>Ctrl + Shift + I</strong> (might work)</li>
+            <li><strong>Ctrl + Shift + J</strong> (direct to console)</li>
+            <li><strong>Ctrl + Shift + C</strong> (element inspector)</li>
+            <li><strong>Menu → More Tools → Developer Tools</strong></li>
+        </ol>
+        
+        <h2>📝 What Browser Are You Using?</h2>
+        <p id="browser"></p>
+        
+        <script>
+            document.getElementById('browser').textContent = navigator.userAgent;
+        </script>
+    </div>
+</body>
+</html>

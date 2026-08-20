@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keep Backend Alive - Smart SMS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .status {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        .alive { color: #4ade80; }
+        .sleeping { color: #fbbf24; }
+        .error { color: #f87171; }
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: left;
+            font-size: 12px;
+        }
+        button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Smart SMS Backend Keep-Alive</h1>
+        <p>Keeps your Render backend awake by pinging every 10 minutes</p>
+        
+        <div class="status" id="status">
+            <span class="alive">⚫</span> Initializing...
+        </div>
+        
+        <div>
+            <strong>Backend:</strong> <span id="backendUrl">https://smart-sms-backend.onrender.com</span>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button onclick="startPinging()">▶️ Start</button>
+            <button onclick="stopPinging()">⏸️ Stop</button>
+            <button onclick="pingNow()">🔄 Ping Now</button>
+            <button onclick="clearLog()">🗑️ Clear Log</button>
+        </div>
+        
+        <div class="log" id="log"></div>
+        
+        <div style="margin-top: 20px; font-size: 14px; opacity: 0.8;">
+            <p>💡 Tip: Keep this tab open to prevent backend from sleeping</p>
+            <p>⏰ Pings every 10 minutes automatically</p>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'https://smart-sms-backend.onrender.com';
+        const PING_INTERVAL = 10 * 60 * 1000; // 10 minutes
+        let pingInterval = null;
+        let isRunning = false;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#f87171' : type === 'success' ? '#4ade80' : '#fbbf24';
+            logDiv.innerHTML = `<div style="color: ${color}">[${timestamp}] ${message}</div>` + logDiv.innerHTML;
+        }
+
+        function updateStatus(message, className) {
+            const statusDiv = document.getElementById('status');
+            const icon = className === 'alive' ? '🟢' : className === 'sleeping' ? '🟡' : '🔴';
+            statusDiv.innerHTML = `<span class="${className}">${icon}</span> ${message}`;
+        }
+
+        async function pingBackend() {
+            try {
+                log('Pinging backend...', 'info');
+                const startTime = Date.now();
+                
+                const response = await fetch(`${BACKEND_URL}/health`);
+                const data = await response.json();
+                
+                const duration = Date.now() - startTime;
+                
+                if (data.status === 'ok') {
+                    log(`✅ Backend is alive! (${duration}ms) - Database: ${data.database}`, 'success');
+                    updateStatus('Backend is Alive ✅', 'alive');
+                    return true;
+                } else {
+                    log(`⚠️ Backend responded but status is: ${data.status}`, 'error');
+                    updateStatus('Backend Issue ⚠️', 'sleeping');
+                    return false;
+                }
+            } catch (error) {
+                log(`❌ Failed to reach backend: ${error.message}`, 'error');
+                updateStatus('Backend Sleeping or Unreachable ❌', 'error');
+                return false;
+            }
+        }
+
+        function startPinging() {
+            if (isRunning) {
+                log('⚠️ Already running!', 'info');
+                return;
+            }
+            
+            isRunning = true;
+            log('▶️ Started automatic pinging (every 10 minutes)', 'success');
+            updateStatus('Running - Backend Stay Awake Mode', 'alive');
+            
+            // Ping immediately
+            pingBackend();
+            
+            // Then ping every 10 minutes
+            pingInterval = setInterval(pingBackend, PING_INTERVAL);
+        }
+
+        function stopPinging() {
+            if (!isRunning) {
+                log('⚠️ Not running!', 'info');
+                return;
+            }
+            
+            isRunning = false;
+            clearInterval(pingInterval);
+            pingInterval = null;
+            log('⏸️ Stopped automatic pinging', 'info');
+            updateStatus('Stopped - Backend May Sleep', 'sleeping');
+        }
+
+        function pingNow() {
+            log('🔄 Manual ping triggered', 'info');
+            pingBackend();
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            log('🗑️ Log cleared', 'info');
+        }
+
+        // Auto-start on page load
+        window.addEventListener('load', () => {
+            log('🚀 Keep-Alive page loaded', 'success');
+            log('Backend URL: ' + BACKEND_URL, 'info');
+            log('Ping interval: 10 minutes', 'info');
+            
+            // Start automatically
+            setTimeout(() => {
+                startPinging();
+            }, 1000);
+        });
+
+        // Show warning when user tries to close tab
+        window.addEventListener('beforeunload', (e) => {
+            if (isRunning) {
+                e.preventDefault();
+                e.returnValue = 'Backend keep-alive is running. Close anyway?';
+            }
+        });
+    </script>
+</body>
+</html>
